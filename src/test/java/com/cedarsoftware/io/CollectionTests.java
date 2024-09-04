@@ -24,6 +24,11 @@ import java.util.TreeSet;
 import com.cedarsoftware.util.DeepEquals;
 import com.cedarsoftware.util.FastByteArrayOutputStream;
 import com.cedarsoftware.util.SealableList;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.Test;
 
 import static com.cedarsoftware.util.CollectionUtilities.listOf;
@@ -383,7 +388,7 @@ class CollectionTests {
     }
 
     @Test
-    void testEnumsInsideOfACollection_whenWritingAsObject_withPrivateMembersIncluded() {
+    void testEnumsInsideOfACollection_whenWritingAsObject_withPrivateMembersIncluded() throws JsonMappingException, JsonProcessingException {
 
         WriteOptions writeOptions = new WriteOptionsBuilder().writeEnumAsJsonObject(false).build();
 
@@ -392,7 +397,10 @@ class CollectionTests {
         String json = TestUtil.toJson(arrayList, writeOptions);
         TestUtil.printLine(json);
         String className = CollectionTests.class.getName();
-        assertEquals("{\"@type\":\"ArrayList\",\"@items\":[{\"@type\":\"" + className + "$TestEnum4\",\"age\":21,\"foo\":\"bar\",\"name\":\"B\"}]}", json);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode outputNode = mapper.readTree("{\"@type\":\"ArrayList\",\"@items\":[{\"@type\":\"" + className + "$TestEnum4\",\"age\":21,\"foo\":\"bar\",\"name\":\"B\"}]}");
+        JsonNode expectedNode = mapper.readTree(json);
+        assertEquals(outputNode, expectedNode);
     }
 
     @Test
